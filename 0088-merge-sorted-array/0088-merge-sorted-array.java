@@ -4,7 +4,6 @@ class Solution {
             return;
         }
         System.arraycopy(nums2, 0, nums1, m, n);
-        
         Arrays.sort(nums1);
     }
 }
