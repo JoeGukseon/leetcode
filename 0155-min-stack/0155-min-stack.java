@@ -1,38 +1,56 @@
 class MinStack {
-    private static final int VALUE = 0;
-    private static final int MIN = 1;
-    private int top;
-    private ArrayList<int[]> stackArray;
-    private int min;
-
+    
+    // private int min=Integer.MAX_VALUE;
+    private Node lst_point=null;
     public MinStack() {
-        this.stackArray = new ArrayList<>();
-        this.top = -1;
-        this.min = Integer.MAX_VALUE;
+        
     }
-
+    
     public void push(int val) {
-        min = Math.min(min, val);
-        int[] arr = new int[]{val, min};
-        stackArray.add(++top, arr);
+        int min=Math.min(val,lst_point==null? Integer.MAX_VALUE:lst_point.min);
+        Node temp=new Node(min,val);
+        if(lst_point==null)
+        {
+            lst_point=temp;
+        }
+        else{
+            lst_point.next=temp;
+            temp.prev=lst_point;
+            lst_point=lst_point.next;
+        }
     }
-
+    
     public void pop() {
-        stackArray.remove(top--);
-
-        if(stackArray.isEmpty()) min = Integer.MAX_VALUE; //min 값 초기화
-        else min = stackArray.get(top)[MIN]; //삭제 후 min값 업데이트
+        Node temp=lst_point.prev;
+        if(temp!=null)
+        temp.next=null;
+        
+        lst_point.prev=null;
+        lst_point=temp;
     }
-
+    
     public int top() {
-        return stackArray.get(top)[VALUE];
+        return lst_point.val;
+    }
+    
+    public int getMin() {
+        return lst_point.min;
     }
 
-    public int getMin() {
-        return stackArray.get(top)[MIN];
+    private class Node{
+        int min;
+        int val;
+        Node next;
+        Node prev;
+        Node(int min,int val)
+        {
+            this.min=min;
+            this.val=val;
+            this.next=null;
+            this.prev=null;
+        }
     }
 }
-
 /**
  * Your MinStack object will be instantiated and called as such:
  * MinStack obj = new MinStack();
