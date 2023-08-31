@@ -4,7 +4,8 @@ class Solution {
         for (String str : strs) {
             char[] temp = str.toCharArray();
             Arrays.sort(temp);
-            String strTemp = Arrays.toString(temp);
+            String strTemp = new String(temp);
+
             if (map.containsKey(strTemp)) {
                 List<String> list = map.get(strTemp);
                 list.add(str);
@@ -14,6 +15,8 @@ class Solution {
                 list.add(str);
                 map.put(strTemp, list);
             }
+
+
         }
 
         return new ArrayList<>(map.values());
