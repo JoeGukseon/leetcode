@@ -14,25 +14,23 @@
  * }
  */
 class Solution {
-    int idx = 0;
-    int answer = 0;
-    public int kthSmallest(TreeNode root, int k) {
-        dfs(root,k);
-        return answer;
-    }
+    // better keep these two variables in a wrapper class
+  private static int number = 0;
+  private static int count = 0;
 
-    public void dfs(TreeNode curNode, int k) {
-        if (curNode == null) {
-            
-            return;
-        }
-
-        dfs(curNode.left, k);
-
-        idx++;
-        if (idx == k) {
-            answer = curNode.val;
-        }
-        dfs(curNode.right, k);
-    }
+  public int kthSmallest(TreeNode root, int k) {
+      count = k;
+      helper(root);
+      return number;
+  }
+  
+  public void helper(TreeNode n) {
+      if (n.left != null) helper(n.left);
+      count--;
+      if (count == 0) {
+          number = n.val;
+          return;
+      }
+      if (n.right != null) helper(n.right);
+  }
 }
