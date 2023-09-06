@@ -14,23 +14,16 @@
  * }
  */
 class Solution {
-    int minDiff = Integer.MAX_VALUE;
-    TreeNode prevNode;
-
+    private static final int BOUND = 1000000;
     public int getMinimumDifference(TreeNode root) {
-        dfs(root);
-        return minDiff;
+        return dfs(root, -BOUND, BOUND);
     }
 
-    public void dfs(TreeNode curNode)
-    {
-        if (curNode != null) {
-            dfs(curNode.left);
-            if (prevNode != null) {
-                minDiff = Math.min(minDiff, Math.abs(curNode.val - prevNode.val));
-            }
-            prevNode = curNode;
-            dfs(curNode.right);
-        }
+    private static int dfs(TreeNode node, int lower, int upper) {
+        if (node == null) return BOUND;
+
+        int cur = Math.min(node.val - lower, upper - node.val);
+        int answer = Math.min(dfs(node.left, lower, node.val), dfs(node.right, node.val, upper));
+        return Math.min(cur, answer);
     }
 }
