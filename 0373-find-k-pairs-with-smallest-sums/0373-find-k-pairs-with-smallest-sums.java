@@ -1,36 +1,33 @@
 class Solution {
     public List<List<Integer>> kSmallestPairs(int[] nums1, int[] nums2, int k) {
-        List<List<Integer>> answer = new ArrayList<>();
+        List<List<Integer>> resV = new ArrayList<>(); // Result list to store the pairs
+        PriorityQueue<int[]> pq = new PriorityQueue<>((a, b) -> a[0] - b[0]);
+        // Priority queue to store pairs with smallest sums, sorted by the sum
 
-        PriorityQueue<int[]> minHeap = new PriorityQueue<>(
-                Comparator.comparingInt(a -> (nums1[a[0]] + nums2[a[1]]))
-        );
-
-        //초기 상태 (0,0)을 힙에 추가
-        minHeap.offer(new int[]{0, 0});
-
-        //k가 1이상 이고 힙이 비워있지 않은 상태
-        while (k > 0 && !minHeap.isEmpty()) {
-            int[] pair = minHeap.poll();
-            int first = pair[0];
-            int second = pair[1];
-
-            List<Integer> curPair = new ArrayList<>();
-            curPair.add(nums1[first]);
-            curPair.add(nums2[second]);
-
-            answer.add(curPair);
-
-            if (first < nums1.length - 1) {
-                minHeap.offer(new int[]{first + 1, second});
-            }
-            if (first == 0 && second < nums2.length - 1) {
-                minHeap.offer(new int[]{first, second + 1});
-            }
-
-            k--;
-
+        // Push the initial pairs into the priority queue
+        for (int x : nums1) {
+            pq.offer(new int[]{x + nums2[0], 0}); // The sum and the index of the second element in nums2
         }
-        return answer;
+
+        // Pop the k smallest pairs from the priority queue
+        while (k > 0 && !pq.isEmpty()) {
+            int[] pair = pq.poll();
+            int sum = pair[0]; // Get the smallest sum
+            int pos = pair[1]; // Get the index of the second element in nums2
+
+            List<Integer> currentPair = new ArrayList<>();
+            currentPair.add(sum - nums2[pos]);
+            currentPair.add(nums2[pos]);
+            resV.add(currentPair); // Add the pair to the result list
+
+            // If there are more elements in nums2, push the next pair into the priority queue
+            if (pos + 1 < nums2.length) {
+                pq.offer(new int[]{sum - nums2[pos] + nums2[pos + 1], pos + 1});
+            }
+
+            k--; // Decrement k
+        }
+
+        return resV; // Return the k smallest pairs
     }
 }
