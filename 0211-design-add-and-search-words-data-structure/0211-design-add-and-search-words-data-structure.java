@@ -1,68 +1,36 @@
 class WordDictionary {
-    Node root;  
+    private WordDictionary[] children;
+    boolean isEndOfWord;
+    // Initialize your data structure here. 
     public WordDictionary() {
-        this.root = new Node();
+        children = new WordDictionary[26];
+        isEndOfWord = false;
     }
     
+    // Adds a word into the data structure. 
     public void addWord(String word) {
-        addWord(this.root, word);
-    }
-    private void addWord(Node node, String word) {
-        if (word.length() == 0) {
-            node.isEndOfWord = true;
-            return;
+        WordDictionary curr = this;
+        for(char c: word.toCharArray()){
+            if(curr.children[c - 'a'] == null)
+                curr.children[c - 'a'] = new WordDictionary();
+            curr = curr.children[c - 'a'];
         }
-
-        char c = word.charAt(0);
-        Node child = node.children.get(c);
-
-        if (child == null) {
-            child = new Node();
-            node.children.put(c, child);
-        }
-
-        addWord(child, word.substring(1));
+        curr.isEndOfWord = true;
     }
     
-   public boolean search(String word) {
-        return search(root, word, 0);
-    }
-
-    private boolean search(Node node, String word,int index) {
-        if (index == word.length()) {
-            return node.isEndOfWord;
-        }
-
-        char c = word.charAt(index);
-        
-        if (c != '.') {
-            Node child = node.children.get(c);
-            if (child == null) {
+    // Returns if the word is in the data structure. A word could contain the dot character '.' to represent any one letter. 
+    public boolean search(String word) {
+        WordDictionary curr = this;
+        for(int i = 0; i < word.length(); ++i){
+            char c = word.charAt(i);
+            if(c == '.'){
+                for(WordDictionary ch: curr.children)
+                    if(ch != null && ch.search(word.substring(i+1))) return true;
                 return false;
             }
-            return search(child, word, index + 1);
-        } else {
-            for (Node child : node.children.values()) {
-                if (search(child, word, index + 1)) {
-                    return true;
-                }
-            }
-            return false;
+            if(curr.children[c - 'a'] == null) return false;
+            curr = curr.children[c - 'a'];
         }
+        return curr != null && curr.isEndOfWord;
     }
 }
-class Node {
-    public Map<Character, Node> children;
-    public boolean isEndOfWord;
-
-    public Node() {
-        this.children = new HashMap<>();
-        this.isEndOfWord = false;
-    }
-}
-/**
- * Your WordDictionary object will be instantiated and called as such:
- * WordDictionary obj = new WordDictionary();
- * obj.addWord(word);
- * boolean param_2 = obj.search(word);
- */
