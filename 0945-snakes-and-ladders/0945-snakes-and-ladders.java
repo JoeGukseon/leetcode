@@ -66,7 +66,7 @@ class Solution {
 //        if (row % 2 != mapSize % 2) {
 //            System.out.println("짝수");
 //        }
-        int col = row % 2 != mapSize % 2 ? (n - 1) % mapSize : (mapSize - 1) - ((n - 1) % mapSize);
+        int col = (int) Math.floor((n - 1) / (double) mapSize) % 2 == 0 ? (n - 1) % mapSize : (mapSize - 1) - ((n - 1) % mapSize);
 
         return new int[]{row, col};
     }
