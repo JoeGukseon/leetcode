@@ -1,39 +1,42 @@
 public class RandomizedSet {
-    ArrayList<Integer> nums;
-    HashMap<Integer, Integer> locs;
-    java.util.Random rand = new java.util.Random();
-    /** Initialize your data structure here. */
+    Map<Integer, Integer> map;
+    List<Integer> list;
+    Random random;
+
     public RandomizedSet() {
-        nums = new ArrayList<Integer>();
-        locs = new HashMap<Integer, Integer>();
+        this.map = new HashMap<>();
+        this.list = new ArrayList<>();
+        this.random = new Random();
     }
-    
-    /** Inserts a value to the set. Returns true if the set did not already contain the specified element. */
+
     public boolean insert(int val) {
-        boolean contain = locs.containsKey(val);
-        if ( contain ) return false;
-        locs.put( val, nums.size());
-        nums.add(val);
-        return true;
-    }
-    
-    /** Removes a value from the set. Returns true if the set contained the specified element. */
-    public boolean remove(int val) {
-        boolean contain = locs.containsKey(val);
-        if ( ! contain ) return false;
-        int loc = locs.get(val);
-        if (loc < nums.size() - 1 ) { // not the last one than swap the last one with this val
-            int lastone = nums.get(nums.size() - 1 );
-            nums.set( loc , lastone );
-            locs.put(lastone, loc);
+        if (map.containsKey(val)) {
+            return false;
         }
-        locs.remove(val);
-        nums.remove(nums.size() - 1);
+
+        map.put(val, list.size());
+        list.add(val);
         return true;
     }
-    
-    /** Get a random element from the set. */
+
+    public boolean remove(int val) {
+        if (!map.containsKey(val)) {
+            return false;
+        }
+
+        int indexToRemove = map.get(val);
+
+        int lastValue = list.get(list.size() - 1);
+        list.set(indexToRemove, lastValue);
+        map.put(lastValue, indexToRemove);
+
+        list.remove(list.size() - 1);
+        map.remove(val);
+
+        return true;
+    }
+
     public int getRandom() {
-        return nums.get( rand.nextInt(nums.size()) );
+        return list.get(random.nextInt(list.size()));
     }
 }
