@@ -30,7 +30,7 @@ char** letterCombinations(char* digits, int* returnSize) {
         return result;
     }
 
-    char current[10];  // 최대 조합 길이로 조정
+    char current[5];  // 최대 조합 길이로 조정
     generateCombinations(current, digits, 0, &result, returnSize);
 
     return result;
