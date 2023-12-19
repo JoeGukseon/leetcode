@@ -1,118 +1,130 @@
-typedef struct words {
-    bool end_of_word;
-    struct words **next;
-} words_t;
+// Trie 노드 정의
+typedef struct TrieNode {
+    bool isEndOfWord;   // 단어의 끝인지 여부
+    struct TrieNode **children;   // 다음 노드를 가리키는 포인터 배열
+} TrieNode;
 
-#define NO_OF_ALPH 26
-#define ALPH_POS(x) (x - 'a')
-#define LOOKUP_WORD(x, y) lookup_word(next, board, boardSize, boardColSize, x, y,\
-                        result, returnSize, word, word_index + 1)
+// Trie 구조체 정의
+typedef struct Trie {
+    TrieNode *root;   // 루트 노드
+} Trie;
 
-words_t *init_words_trie(void) {
-    words_t *root = calloc(1, sizeof *root);
-    root -> end_of_word = false;
-    return root;
+// 새로운 TrieNode를 생성하는 함수
+TrieNode *createTrieNode() {
+    TrieNode *node = (TrieNode *)malloc(sizeof(TrieNode));
+    node->isEndOfWord = false;
+    node->children = (TrieNode **)calloc(26, sizeof(TrieNode *));   // 알파벳 개수만큼의 배열 할당
+    return node;
 }
 
-void insert_word(words_t *root, char *word) {
-    if (*word == '\0') { // reaching the end of word, return
-        root -> end_of_word = true;
-        return;
-    }
-    if (!root -> next) { // malloc if root -> next doesn't exist
-        root -> next = calloc(NO_OF_ALPH, sizeof *(root -> next));
-    }
-    if (!root -> next[ALPH_POS(*word)]) { // malloc if required child node doesn't exist
-        root -> next[ALPH_POS(*word)] = calloc(1, sizeof(words_t));
-        root -> next[ALPH_POS(*word)] -> end_of_word = false;
-    }
-    insert_word(root -> next[ALPH_POS(*word)], word + 1);
+// Trie를 초기화하는 함수
+Trie *initializeTrie() {
+    Trie *trie = (Trie *)malloc(sizeof(Trie));
+    trie->root = createTrieNode();   // 루트 노드 생성
+    return trie;
 }
 
-void free_words_trie(words_t *root) {
-    if (!root) {
-        return;
-    }
-    if (root -> next) { // iterate through possible child nodes and free them
-        for (int i = 0; i < NO_OF_ALPH; i++) {
-            free_words_trie(root -> next[i]);
+// Trie에 단어를 삽입하는 함수
+void insertWord(Trie *trie, char *word) {
+    TrieNode *node = trie->root;
+    while (*word) {
+        int index = *word - 'a';
+        if (!node->children[index]) {
+            node->children[index] = createTrieNode();
         }
-        free(root -> next); // free the overall root -> next
+        node = node->children[index];
+        word++;
     }
-    free(root); // free the node itself
+    node->isEndOfWord = true;
 }
 
-// add the word to the result array
-void add_to_result(char **result, int *returnSize, char *word) {
-    int i;
-    for (i = 0; word[i] != '\0'; i++);
-    memcpy(result[(*returnSize)++], word, i + 1);
-}
-
-void lookup_word(words_t *trie, char **board, int boardSize, int *boardColSize, int row, int col, 
-                 char **result, int *returnSize, char *word, int word_index) {
-    // if you got to the end of trie or reached a '!', i.e. used board position, stop now
-    if (board[row][col] == '!' 
-        || !trie -> next
-        || !trie -> next[ALPH_POS(board[row][col])]) {
+// Trie에 사용된 메모리를 해제하는 함수
+void freeTrie(Trie *trie) {
+    if (!trie || !trie->root) {
         return;
     }
-    char current_char = board[row][col];
-    words_t *next = trie -> next[ALPH_POS(current_char)];
-    word[word_index] = current_char;
-    /* adding the word to result based on "next" instead of "trie"
-     * i.e. NOT if (trie -> end_of_word) {...}
-     * to prevent extra executions in the following recursive calls
-     */
-    if (next -> end_of_word) { // if next node is end_of_word, add it in result
-        next -> end_of_word = false;
-        word[word_index + 1] = '\0';
-        add_to_result(result, returnSize, word);
-    }
-    // prevent DFS to use added chars in the table, substitute with '!'
-    board[row][col] = '!';
-    // if the coordinate doesn't go out of bound of the board, continue
-    if (row < boardSize - 1) LOOKUP_WORD(row + 1, col); 
-    if (row > 0) LOOKUP_WORD(row - 1, col);
-    if (col < *boardColSize - 1) LOOKUP_WORD(row, col + 1);
-    if (col > 0) LOOKUP_WORD(row, col - 1);
-    board[row][col] = current_char;
+    free(trie->root->children);
+    free(trie->root);
+    free(trie);
 }
 
-/**
- * Note: The returned array must be malloced, assume caller calls free().
- */
-char ** findWords(char** board, int boardSize, int* boardColSize, char ** words, int wordsSize, int* returnSize){
+// 결과 배열에 단어를 추가하는 함수
+void addToResult(char **result, int *returnSize, char *word) {
+    int length = strlen(word);
+    result[*returnSize] = (char *)malloc((length + 1) * sizeof(char));
+    strcpy(result[*returnSize], word);
+    (*returnSize)++;
+}
+
+// 보드에서 단어를 찾아 결과를 업데이트하는 함수
+void lookupWords(TrieNode *node, char **board, int boardSize, int *boardColSize,
+                 int row, int col, char **result, int *returnSize, char *word, int wordIndex) {
+    if (board[row][col] == '!' || !node->children[board[row][col] - 'a']) {
+        return;
+    }
+
+    char currentChar = board[row][col];
+    TrieNode *nextNode = node->children[currentChar - 'a'];
+
+    word[wordIndex] = currentChar;
+
+    if (nextNode->isEndOfWord) {
+        nextNode->isEndOfWord = false;
+        word[wordIndex + 1] = '\0';
+        addToResult(result, returnSize, word);
+    }
+
+    board[row][col] = '!';
+
+    if (row < boardSize - 1) {
+        lookupWords(nextNode, board, boardSize, boardColSize, row + 1, col, result, returnSize, word, wordIndex + 1);
+    }
+    if (row > 0) {
+        lookupWords(nextNode, board, boardSize, boardColSize, row - 1, col, result, returnSize, word, wordIndex + 1);
+    }
+    if (col < *boardColSize - 1) {
+        lookupWords(nextNode, board, boardSize, boardColSize, row, col + 1, result, returnSize, word, wordIndex + 1);
+    }
+    if (col > 0) {
+        lookupWords(nextNode, board, boardSize, boardColSize, row, col - 1, result, returnSize, word, wordIndex + 1);
+    }
+
+    board[row][col] = currentChar;
+}
+
+
+char **findWords(char **board, int boardSize, int *boardColSize, char **words, int wordsSize, int *returnSize) {
     *returnSize = 0;
-    // edge case
+
+    // 예외 처리
     if (wordsSize <= 0) {
         return NULL;
     }
-    // build up the words_trie
-    words_t *words_trie = init_words_trie();
+
+    // Trie 초기화
+    Trie *trie = initializeTrie();
+
+    // Trie에 단어 삽입
     for (int i = 0; i < wordsSize; i++) {
-        insert_word(words_trie, words[i]);
+        insertWord(trie, words[i]);
     }
-    // malloc the result
-    // for the sake of easier management, magic number for calloc size
-    char **result = calloc(111, sizeof *result);
-    for (int i = 0; i < 111; i++) {
-        // to accommodate the max possible length, including '\0' to terminate the string
-        result[i] = calloc(boardSize * (*boardColSize) + 1, sizeof(char));
+
+    // 결과 배열 메모리 할당
+    char **result = (char **)malloc(wordsSize * sizeof(char *));
+    for (int i = 0; i < wordsSize; i++) {
+        result[i] = NULL;
     }
-    // lookup the words in the board and add them in if there is any
+
+    // 보드에서 단어 찾아 결과 업데이트
     for (int i = 0; i < boardSize; i++) {
         for (int j = 0; j < *boardColSize; j++) {
-            /* temp word variable so that each possible result is recorded and added
-             * if directly writing in result, then sth like a--b--c
-             *                                                 |--d
-             * will record only "abc" and subsequently "\0\0d", not "abd"
-             */
             char word[boardSize * (*boardColSize) + 1];
-            lookup_word(words_trie, board, boardSize, boardColSize, i, j, 
-                        result, returnSize, word, 0);
+            lookupWords(trie->root, board, boardSize, boardColSize, i, j, result, returnSize, word, 0);
         }
     }
-    free_words_trie(words_trie);
+
+    // Trie에 사용된 메모리 해제
+    freeTrie(trie);
+
     return result;
 }
